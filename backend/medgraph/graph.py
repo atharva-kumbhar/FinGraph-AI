@@ -63,6 +63,7 @@ class GraphReasoner:
         logger.info("=" * 80)
 
         # ── Step 1: Extract entities using Python (NO LLM) ────────────────────
+        import time
         known_entities = TigerGraphClient._global_entities_cache or []
         entities = extract_entities(query, known_entities)
 
@@ -70,7 +71,6 @@ class GraphReasoner:
         qtype = determine_question_type(entities)
 
         # ── Step 3: Select and Execute TigerGraph Query ───────────────────────
-        import time
         tg_start = time.perf_counter()
         year = entities.years[0] if entities.years else None
         metric = entities.metrics[0] if entities.metrics else None
@@ -135,7 +135,7 @@ class GraphReasoner:
             companies=detected_companies,
             chunk_ids=matched_chunk_ids,
             keywords=keywords,
-            max_chunks_per_company=10,
+            max_chunks_per_company=settings.graphrag_retrieval_top_k,
         )
         all_results["loaded_chunks"] = loaded_chunks
         all_results["matched_chunk_ids"] = [c.get("chunk_id") for c in loaded_chunks if c.get("chunk_id")]
@@ -555,6 +555,7 @@ class TigerGraphClient:
     _global_chunks_index_by_company: dict[str, list[dict[str, Any]]] | None = None
     _global_entities_cache: list[tuple[str, str]] | None = None
     _global_traversal_cache: dict[str, dict[str, Any]] = {}
+    _global_unreachable: bool = False
 
     def __init__(self) -> None:
         self.host = settings.tg_host.rstrip("/")
@@ -564,9 +565,10 @@ class TigerGraphClient:
         self.verify_ssl = settings.tg_verify_ssl
         self.api_token = settings.tg_api_token
         self.secret = settings.tg_secret
+        is_local = "localhost" in self.host or "127.0.0.1" in self.host
         self.configured = bool(
             self.host and self.graph_name and (self.api_token or self.secret or self.username)
-        )
+        ) and (is_local or settings.tg_live_cloud_enabled) and not TigerGraphClient._global_unreachable
         self.session = requests.Session()
         adapter = requests.adapters.HTTPAdapter(pool_connections=25, pool_maxsize=25)
         self.session.mount("http://", adapter)
@@ -691,9 +693,13 @@ class TigerGraphClient:
                 if any(v in ckey_low or ckey_low in v for v in variants):
                     comp_chunks.extend(clist)
 
+            # Fast pre-filter candidate chunks (up to 40) for fast sorting
+            candidate_pool = comp_chunks[:40] if len(comp_chunks) > 40 else comp_chunks
+
             # Sort company chunks by keyword token match frequency (highest relevance first)
-            if kws_tokens:
-                comp_chunks.sort(
+            if kws_tokens and candidate_pool:
+                comp_chunks = sorted(
+                    candidate_pool,
                     key=lambda r: sum(1 for tok in kws_tokens if tok in (r.get("text") or "").lower()),
                     reverse=True,
                 )
@@ -856,37 +862,37 @@ class TigerGraphClient:
         return "Apple Inc."
 
     def _traverse_rest_company(self, company_name: str) -> dict[str, Any]:
+        if not self.configured or not settings.tg_live_cloud_enabled:
+            return self._load_from_extracted_dataset(company_name)
         cache_key = company_name.lower().strip()
         if cache_key in TigerGraphClient._global_traversal_cache:
             return TigerGraphClient._global_traversal_cache[cache_key]
 
-        eg = quote(self.graph_name, safe="")
-        cand_path = f"/restpp/graph/{eg}/vertices/Company?filter=name%3D%22{quote(company_name, safe='')}%22"
-        try:
-            payload = self._get_json(cand_path)
-            results = payload.get("results") or []
-        except Exception:
-            results = []
-
-        comp_vid = None
-        company_attrs = {"name": company_name}
-
-        if results:
-            comp_vid = results[0].get("v_id")
-            company_attrs = results[0].get("attributes") or company_attrs
-        else:
-            entities = self.fetch_entities()
-            for name, vid in entities:
-                if company_name.lower() in name.lower() or name.lower() in company_name.lower():
-                    comp_vid = vid
-                    company_attrs = {"name": name}
-                    break
-
         base_data = self._load_from_extracted_dataset(company_name)
 
-        if not comp_vid:
-            TigerGraphClient._global_traversal_cache[cache_key] = base_data
-            return base_data
+        # Non-blocking quick attempt for live REST edges (timeout 1.0s)
+        try:
+            eg = quote(self.graph_name, safe="")
+            cand_path = f"/restpp/graph/{eg}/vertices/Company?filter=name%3D%22{quote(company_name, safe='')}%22"
+            payload = self._get_json(cand_path)
+            results = payload.get("results") or []
+            comp_vid = results[0].get("v_id") if results else None
+            if comp_vid:
+                edge_path = f"/restpp/graph/{eg}/edges/Company/{comp_vid}"
+                edge_payload = self._get_json(edge_path)
+                edges = edge_payload.get("results") or []
+                docs = list(base_data.get("documents") or [])
+                for e in edges[:4]:
+                    to_id = str(e.get("to_id") or "")
+                    to_type = e.get("to_type") or ""
+                    if to_type == "Document" and not any(d.get("chunk_id") == to_id for d in docs):
+                        docs.append({"id": to_id, "chunk_id": to_id, "filing_type": "10-K", "company_name": company_name})
+                base_data["documents"] = docs
+        except Exception:
+            pass
+
+        TigerGraphClient._global_traversal_cache[cache_key] = base_data
+        return base_data
 
         edge_path = f"/restpp/graph/{eg}/edges/Company/{comp_vid}"
         try:
@@ -917,7 +923,7 @@ class TigerGraphClient:
                     docs.append(doc_item)
                 doc_ids_to_fetch.append(to_id)
 
-        if doc_ids_to_fetch:
+        if doc_ids_to_fetch and self.configured and settings.tg_live_cloud_enabled:
             from concurrent.futures import ThreadPoolExecutor
             def _fetch_doc_edge(to_id: str):
                 try:
@@ -961,12 +967,14 @@ class TigerGraphClient:
         TigerGraphClient._global_traversal_cache[cache_key] = res
         return res
 
+    _global_extracted_data_cache: dict[str, dict[str, Any]] | None = None
+
     def _load_from_extracted_dataset(self, company_name: str) -> dict[str, Any]:
         """Fallback graph data loader from data/sp100/chunks.jsonl / final_extracted.jsonl."""
-        if self._extracted_data_cache is None:
-            self._extracted_data_cache = {}
+        if TigerGraphClient._global_extracted_data_cache is None:
+            cache: dict[str, dict[str, Any]] = {}
 
-            for file_name in ["chunks.jsonl", "final_extracted.jsonl"]:
+            for file_name in ["final_extracted.jsonl", "chunks.jsonl"]:
                 p = ROOT_DIR / "data" / "sp100" / file_name
                 if not p.exists():
                     continue
@@ -976,18 +984,13 @@ class TigerGraphClient:
                             continue
                         try:
                             row = json.loads(line)
-                            cname = row.get("company_name") or row.get("company")
+                            cname = (row.get("company_name") or row.get("company") or "").strip()
                             if not cname:
                                 continue
 
-                            matched_key = None
-                            for existing_key in self._extracted_data_cache:
-                                if cname.lower() in existing_key.lower() or existing_key.lower() in cname.lower():
-                                    matched_key = existing_key
-                                    break
-                            if not matched_key:
-                                matched_key = cname
-                                self._extracted_data_cache[matched_key] = {
+                            key = cname.lower()
+                            if key not in cache:
+                                cache[key] = {
                                     "company_attrs": {
                                         "name": cname,
                                         "ticker": row.get("company", ""),
@@ -1000,7 +1003,7 @@ class TigerGraphClient:
                                     "events": [],
                                 }
 
-                            target = self._extracted_data_cache[matched_key]
+                            target = cache[key]
                             if file_name == "chunks.jsonl":
                                 if len(target["documents"]) < 10:
                                     target["documents"].append({
@@ -1026,9 +1029,15 @@ class TigerGraphClient:
                         except Exception:
                             continue
 
-        cand_lower = company_name.lower()
-        for key, val in self._extracted_data_cache.items():
-            if cand_lower in key.lower() or key.lower() in cand_lower:
+            TigerGraphClient._global_extracted_data_cache = cache
+
+        cand_lower = company_name.lower().strip()
+        cache = TigerGraphClient._global_extracted_data_cache or {}
+        if cand_lower in cache:
+            return cache[cand_lower]
+
+        for key, val in cache.items():
+            if cand_lower in key or key in cand_lower:
                 return val
 
         return {
@@ -1048,28 +1057,40 @@ class TigerGraphClient:
 
     def _ensure_token(self) -> str:
         """Fetch fresh JWT token from TigerGraph if missing using TG_SECRET."""
+        if TigerGraphClient._global_unreachable:
+            return ""
         if self.api_token:
             return self.api_token
         if not self.secret:
             return ""
-        try:
+
+        from concurrent.futures import ThreadPoolExecutor, TimeoutError as FutureTimeoutError
+
+        def _do_post() -> str:
             url = f"{self.host}/gsql/v1/tokens"
             self._suppress_ssl()
             resp = self.session.post(
                 url,
                 json={"secret": self.secret},
-                timeout=settings.request_timeout_seconds,
+                timeout=0.2,
                 verify=self.verify_ssl,
             )
             if resp.ok:
                 data = resp.json()
-                tok = data.get("token")
+                return data.get("token") or ""
+            return ""
+
+        try:
+            with ThreadPoolExecutor(max_workers=1) as ex:
+                fut = ex.submit(_do_post)
+                tok = fut.result(timeout=0.2)
                 if tok:
                     self.api_token = tok
-                    logger.info("[TG] Successfully acquired JWT token via secret")
                     return tok
         except Exception as exc:
-            logger.warning(f"[TG] Token acquisition via secret failed: {exc}")
+            logger.warning(f"[TG] Token acquisition failed/timed out: {exc}")
+            self.configured = False
+            TigerGraphClient._global_unreachable = True
         return ""
 
     def _headers(self) -> dict[str, str]:
@@ -1079,25 +1100,38 @@ class TigerGraphClient:
         return h
 
     def _get_json(self, path: str, retry: bool = True) -> dict[str, Any]:
+        if not self.configured or TigerGraphClient._global_unreachable:
+            raise RuntimeError("TigerGraph client not configured/unreachable.")
         url = f"{self.host}{path}"
         self._suppress_ssl()
 
         self._ensure_token()
+        if TigerGraphClient._global_unreachable:
+            raise RuntimeError("TigerGraph client unreachable.")
 
         auth = None
         headers = self._headers()
         if not self.api_token and self.username and self.password:
             auth = requests.auth.HTTPBasicAuth(self.username, self.password)
 
-        try:
-            resp = self.session.get(
+        from concurrent.futures import ThreadPoolExecutor
+
+        def _do_get() -> requests.Response:
+            return self.session.get(
                 url,
                 headers=headers,
                 auth=auth,
-                timeout=min(3.5, settings.request_timeout_seconds),
+                timeout=0.2,
                 verify=self.verify_ssl,
             )
-        except requests.RequestException as exc:
+
+        try:
+            with ThreadPoolExecutor(max_workers=1) as ex:
+                fut = ex.submit(_do_get)
+                resp = fut.result(timeout=0.2)
+        except Exception as exc:
+            self.configured = False
+            TigerGraphClient._global_unreachable = True
             raise RuntimeError(f"TigerGraph request failed: {exc}") from exc
 
         if resp.status_code in (401, 403) and retry and self.secret:

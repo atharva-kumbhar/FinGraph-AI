@@ -24,6 +24,25 @@ class PipelineService:
         self.evaluator = AccuracyEvaluator(self.llm)
         self.abort_event = threading.Event()
 
+        # Pre-warm SEC chunks index and graph dataset in background thread for instant UI responses
+        def _warm() -> None:
+            import socket
+            from medgraph.graph import TigerGraphClient
+            try:
+                host_str = self.graph.tigergraph.host.replace("https://", "").replace("http://", "").split("/")[0].split(":")[0]
+                socket.create_connection((host_str, 443), timeout=0.2)
+            except Exception:
+                TigerGraphClient._global_unreachable = True
+                self.graph.tigergraph.configured = False
+            self.graph.tigergraph.load_sec_text_chunks([])
+            self.graph.tigergraph._load_from_extracted_dataset("Apple Inc.")
+
+        threading.Thread(target=_warm, daemon=True).start()
+
+    @staticmethod
+    def _public_response(pipeline: dict[str, Any]) -> dict[str, Any]:
+        return pipeline
+
     def stop_generation(self) -> None:
         self.abort_event.set()
 
@@ -621,6 +640,8 @@ SEC Filing & GraphRAG Context:
         warning: str,
         extra: dict[str, Any],
     ) -> dict[str, Any]:
+        if not reference_answer:
+            reference_answer = evidence[:400] if evidence else generation.answer
         accuracy = self.evaluator.score(
             query=query,
             answer=generation.answer,

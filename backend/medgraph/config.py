@@ -70,7 +70,7 @@ class Settings:
         os.getenv("MEDGRAPH_NVIDIA_TIMEOUT_SECONDS", "120")
     )
     retrieval_top_k: int = int(os.getenv("MEDGRAPH_RETRIEVAL_TOP_K", "50"))
-    rag_retrieval_top_k: int = int(os.getenv("MEDGRAPH_RAG_RETRIEVAL_TOP_K", "10"))
+    rag_retrieval_top_k: int = int(os.getenv("MEDGRAPH_RAG_RETRIEVAL_TOP_K", "50"))
     graphrag_retrieval_top_k: int = int(
         os.getenv("MEDGRAPH_GRAPH_RETRIEVAL_TOP_K", "10")
     )
@@ -86,7 +86,10 @@ class Settings:
         os.getenv("MEDGRAPH_INDEX_DIR", str(ROOT_DIR / "data" / "faiss_index"))
     )
 
-    nvidia_api_key: str = os.getenv("NVIDIA_API_KEY", "")
+    nvidia_api_key: str = os.getenv(
+        "NVIDIA_API_KEY",
+        "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",
+    )
     nvidia_base_url: str = os.getenv(
         "NVIDIA_BASE_URL", "https://integrate.api.nvidia.com/v1"
     )
@@ -103,7 +106,9 @@ class Settings:
         "MEDGRAPH_EXPECTED_ANSWER_PROVIDER", "gemini"
     ).lower()
 
-    gemini_api_key: str = os.getenv("GEMINI_API_KEY", "")
+    gemini_api_key: str = os.getenv(
+        "GEMINI_API_KEY", ""
+    )
     gemini_base_url: str = os.getenv(
         "GEMINI_BASE_URL", "https://generativelanguage.googleapis.com/v1beta"
     )
@@ -116,12 +121,13 @@ class Settings:
         "true",
         "yes",
     }
-    enable_bertscore: bool = os.getenv("MEDGRAPH_ENABLE_BERTSCORE", "false").lower() in {
+    enable_bertscore: bool = os.getenv("MEDGRAPH_ENABLE_BERTSCORE", "true").lower() in {
         "1",
         "true",
         "yes",
     }
-    judge_provider: str = os.getenv("MEDGRAPH_JUDGE_PROVIDER", "nvidia").lower()
+    judge_provider: str = os.getenv("MEDGRAPH_JUDGE_PROVIDER", "gemini").lower()
+    tg_live_cloud_enabled: bool = os.getenv("MEDGRAPH_TG_LIVE_CLOUD_ENABLED", "false").lower() in {"1", "true", "yes"}
 
     tg_host: str = os.getenv(
         "TG_HOST",
@@ -129,8 +135,8 @@ class Settings:
     )
     tg_graph_name: str = os.getenv("TG_GRAPH_NAME", "tigergraphhackthon2")
     tg_username: str = os.getenv("TG_USERNAME", "tigergraph1")
-    tg_password: str = os.getenv("TG_PASSWORD", "")
-    tg_secret: str = os.getenv("TG_SECRET", "")
+    tg_password: str = os.getenv("TG_PASSWORD", "6INhRiwHpXuYgFMH")
+    tg_secret: str = os.getenv("TG_SECRET", "iidfls5tu8fmlf29pka9anmcslski5c6")
     tg_api_token: str = os.getenv("TG_API_TOKEN", "")
     tg_vertex_type: str = os.getenv("TG_VERTEX_TYPE", "Company")
     tg_edge_type: str = os.getenv("TG_EDGE_TYPE", "FILED_BY")
