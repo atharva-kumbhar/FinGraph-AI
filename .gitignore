@@ -6,6 +6,7 @@
 # Large dataset files (>100MB limit on GitHub) & legacy assets
 data/sp100/*.jsonl
 !data/sp100/chunks.jsonl
+!data/sp100/final_extracted.jsonl
 data/final_medical_rag_dataset.csv
 data/sample_medical_chunks.json
 data/ground_truth_questions.json
