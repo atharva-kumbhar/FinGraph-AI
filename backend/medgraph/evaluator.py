@@ -62,15 +62,22 @@ class AccuracyEvaluator:
                 method="LLM-as-judge disabled",
                 rationale="Set MEDGRAPH_ENABLE_LLM_JUDGE=true to evaluate generated answers.",
             )
-        if not self.llm_client or not self.llm_client.has_provider("gemini"):
-            return AccuracyResult(
-                judge="NOT_EVALUATED",
-                pass_rate=None,
-                bertscore_f1=bertscore_f1,
-                hallucination_risk="UNKNOWN",
-                method="requires hosted LLM judge",
-                rationale="Set GEMINI_API_KEY for Gemini LLM-as-a-judge scoring.",
-            )
+        judge_provider = settings.judge_provider
+        if not self.llm_client or not self.llm_client.has_provider(judge_provider):
+            # Fallback to any available provider if the primary judge_provider isn't configured
+            if self.llm_client and self.llm_client.has_provider("nvidia"):
+                judge_provider = "nvidia"
+            elif self.llm_client and self.llm_client.has_provider("gemini"):
+                judge_provider = "gemini"
+            else:
+                return AccuracyResult(
+                    judge="NOT_EVALUATED",
+                    pass_rate=None,
+                    bertscore_f1=bertscore_f1,
+                    hallucination_risk="UNKNOWN",
+                    method="requires hosted LLM judge",
+                    rationale="Set GEMINI_API_KEY or NVIDIA_API_KEY for LLM-as-a-judge scoring.",
+                )
 
         prompt = self._judge_prompt(
             query=query,
@@ -84,11 +91,12 @@ class AccuracyEvaluator:
             generation = self.llm_client.generate(
                 prompt,
                 system=(
-                    "You are a strict SEC filing and corporate finance QA evaluator. Rate the generated answer from 1 to 10 "
-                    "for factual correctness, financial data accuracy, and relevance compared to the expected financial answer. "
-                    "Ensure your output format ends with 'Score: [number]'."
+                    "You are an expert SEC filing and corporate finance QA evaluator. "
+                    "Understand the financial intent of the query and carefully inspect the provided evidence. "
+                    "Rate the generated answer from 1 to 10 for factual correctness, financial precision, and relevance. "
+                    "Ensure your final line of output ends with 'Score: [number]'."
                 ),
-                provider="gemini",
+                provider=judge_provider,
                 temperature=0.0,
                 max_tokens=150,
             )
@@ -145,29 +153,31 @@ class AccuracyEvaluator:
         reference_answer: str | None,
         bertscore_f1: float | None,
     ) -> str:
-        reference_block = reference_answer or ""
+        reference_block = reference_answer or "Evaluate based on ground-truth SEC filing context."
         evidence_block = evidence or "No retrieved evidence was provided by this pipeline."
         return f"""
 Evaluate the generated answer for an SEC financial QA system.
 
-Pipeline: {pipeline}
-User query:
+Pipeline evaluated: {pipeline}
+User Financial Query & Intent:
 {query}
 
-Expected financial answer:
+Ground-Truth SEC Reference Answer:
 {reference_block}
 
-Generated answer to evaluate:
-{answer}
-
-Retrieved or graph evidence:
+Retrieved SEC Filing & Graph Evidence Grounding:
 {evidence_block}
 
-Instructions:
-1. Compare the Expected Financial Answer vs the Generated Answer.
-2. Score the Generated Answer from 1 to 10 based on factual correctness, accuracy, and relevance.
-3. Provide a brief rationale.
-4. Your response must end with exactly: "Score: [value]" (e.g. "Score: 8").
+Candidate Generated Answer to Evaluate:
+{answer}
+
+Instructions for Evaluation:
+1. Carefully analyze the intent of the User Financial Query and verify if the Candidate Answer directly addresses all required metrics, company details, or risk factors.
+2. Cross-examine the Candidate Answer against both the Ground-Truth Reference Answer and the Retrieved SEC Evidence.
+3. Check for factual hallucinations, missing financial numbers, or incorrect corporate entities.
+4. Score the Candidate Answer from 1 to 10 based on factual correctness, precision, completeness, and grounding.
+5. Provide a brief 1-sentence rationale explaining the score.
+6. Your response MUST conclude on its final line with: "Score: [value]" (e.g., "Score: 9").
 """
 
     @staticmethod
@@ -180,7 +190,15 @@ Instructions:
             from bert_score import score as bert_score
         except ImportError:
             return AccuracyEvaluator._semantic_f1(answer, reference_answer)
-        _, _, f1 = bert_score([answer], [reference_answer], lang="en", verbose=False)
+        _, _, f1 = bert_score(
+            [answer],
+            [reference_answer],
+            model_type="roberta-large",
+            lang="en",
+            rescale_with_baseline=True,
+            idf=False,
+            verbose=False,
+        )
         return round(float(f1.mean().item()), 4)
 
     @staticmethod

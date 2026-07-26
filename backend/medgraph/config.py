@@ -121,7 +121,7 @@ class Settings:
         "true",
         "yes",
     }
-    judge_provider: str = os.getenv("MEDGRAPH_JUDGE_PROVIDER", "gemini").lower()
+    judge_provider: str = os.getenv("MEDGRAPH_JUDGE_PROVIDER", "nvidia").lower()
 
     tg_host: str = os.getenv("TG_HOST", "")
     tg_graph_name: str = os.getenv("TG_GRAPH_NAME", "database1")
