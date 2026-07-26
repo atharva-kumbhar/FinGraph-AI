@@ -1,3 +1,13 @@
+---
+title: MedGraph
+emoji: 📈
+colorFrom: blue
+colorTo: indigo
+sdk: docker
+app_port: 8000
+pinned: false
+---
+
 # 🏆 FinGraph AI — TigerGraph Hackathon Executive Submission
 
 > **AI-Powered Financial Reasoning & GraphRAG Platform for SEC Corporate Disclosures**
