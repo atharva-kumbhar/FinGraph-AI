@@ -70,12 +70,12 @@ class Settings:
         os.getenv("MEDGRAPH_NVIDIA_TIMEOUT_SECONDS", "120")
     )
     retrieval_top_k: int = int(os.getenv("MEDGRAPH_RETRIEVAL_TOP_K", "50"))
-    rag_retrieval_top_k: int = int(os.getenv("MEDGRAPH_RAG_RETRIEVAL_TOP_K", "25"))
+    rag_retrieval_top_k: int = int(os.getenv("MEDGRAPH_RAG_RETRIEVAL_TOP_K", "10"))
     graphrag_retrieval_top_k: int = int(
         os.getenv("MEDGRAPH_GRAPH_RETRIEVAL_TOP_K", "10")
     )
     graphrag_graph_chunk_limit: int = int(
-        os.getenv("MEDGRAPH_GRAPH_CHUNK_LIMIT", "2")
+        os.getenv("MEDGRAPH_GRAPH_CHUNK_LIMIT", "10")
     )
     embedding_model: str = os.getenv(
         "MEDGRAPH_EMBEDDING_MODEL", "sentence-transformers/all-MiniLM-L6-v2"
@@ -92,9 +92,9 @@ class Settings:
     )
     llm_model: str = os.getenv("MEDGRAPH_LLM_MODEL", "meta/llama-3.3-70b-instruct")
     production_provider: str = os.getenv("MEDGRAPH_PRODUCTION_PROVIDER", "auto").lower()
-    llm_only_provider: str = os.getenv("MEDGRAPH_LLM_ONLY_PROVIDER", "nvidia").lower()
-    rag_provider: str = os.getenv("MEDGRAPH_RAG_PROVIDER", "nvidia").lower()
-    graphrag_provider: str = os.getenv("MEDGRAPH_GRAPHRAG_PROVIDER", "nvidia").lower()
+    llm_only_provider: str = os.getenv("MEDGRAPH_LLM_ONLY_PROVIDER", "gemini").lower()
+    rag_provider: str = os.getenv("MEDGRAPH_RAG_PROVIDER", "gemini").lower()
+    graphrag_provider: str = os.getenv("MEDGRAPH_GRAPHRAG_PROVIDER", "gemini").lower()
     test_provider: str = os.getenv("MEDGRAPH_TEST_PROVIDER", "auto").lower()
     generation_provider: str = os.getenv(
         "MEDGRAPH_GENERATION_PROVIDER", production_provider
@@ -123,9 +123,12 @@ class Settings:
     }
     judge_provider: str = os.getenv("MEDGRAPH_JUDGE_PROVIDER", "nvidia").lower()
 
-    tg_host: str = os.getenv("TG_HOST", "")
-    tg_graph_name: str = os.getenv("TG_GRAPH_NAME", "database1")
-    tg_username: str = os.getenv("TG_USERNAME", "")
+    tg_host: str = os.getenv(
+        "TG_HOST",
+        "https://tg-54bb3cb0-22a9-4a3c-a0c5-dc18cf9d140d.tg-2635877100.i.tgcloud.io",
+    )
+    tg_graph_name: str = os.getenv("TG_GRAPH_NAME", "tigergraphhackthon2")
+    tg_username: str = os.getenv("TG_USERNAME", "tigergraph1")
     tg_password: str = os.getenv("TG_PASSWORD", "")
     tg_secret: str = os.getenv("TG_SECRET", "")
     tg_api_token: str = os.getenv("TG_API_TOKEN", "")
