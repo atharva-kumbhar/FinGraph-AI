@@ -1,0 +1,11 @@
+[package]
+name = "atharva-kumbhar/fingraph-ai"
+version = "0.1.0"
+description = "FinGraph AI SEC Financial GraphRAG System"
+
+[build]
+dockerfile = "Dockerfile"
+
+[app]
+name = "fingraph-ai"
+exec = "uvicorn backend.app:app --host 0.0.0.0 --port 8000"
