@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>FinGraph AI</title>
+    <link rel="stylesheet" href="/styles.css?v=5" />
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="#home">
+        <span class="brand-mark">FG</span>
+        <span>FinGraph AI</span>
+      </a>
+      <nav aria-label="Primary navigation">
+        <a href="#home">Home</a>
+        <a href="#architecture">Architecture</a>
+        <a href="#dashboard">Dashboard</a>
+        <a href="#batch">Batch</a>
+        <a href="#metrics">Metrics</a>
+        <a href="#graph">Graph</a>
+        <a href="#dataset">Dataset</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="section-shell hero" id="home">
+        <div class="hero-copy text-center">
+          <h1>FinGraph AI</h1>
+          <p class="subtitle">AI-powered financial reasoning for SEC filings and corporate disclosures</p>
+          <p class="description">
+            Help analysts understand balance sheets, revenue metrics, executive leadership, business risks, and corporate events using SEC 10-K, 10-Q, 8-K, and DEF 14A documents.
+          </p>
+          
+          <div class="flow-visual">
+            <span class="flow-badge">Companies</span>
+            <span class="arrow">&rarr;</span>
+            <span class="flow-badge">Filings</span>
+            <span class="arrow">&rarr;</span>
+            <span class="flow-badge">Financial Metrics</span>
+            <span class="arrow">&rarr;</span>
+            <span class="flow-badge">Executives</span>
+            <span class="arrow">&rarr;</span>
+            <span class="flow-badge">Business Risks</span>
+          </div>
+          
+          <div class="problem-cards">
+            <div class="problem-card">
+              <h3>Inaccurate Financial Reasoning</h3>
+              <p>Misinterpreting complex SEC filings, footnotes, or overlapping financial metrics leads to flawed corporate valuation.</p>
+            </div>
+            <div class="problem-card">
+              <h3>Data & Regulatory Risk</h3>
+              <p>Overlooking vital risk disclosures or ignoring severe multi-year liabilities compromises investment analysis.</p>
+            </div>
+            <div class="problem-card">
+              <h3>Delayed Financial Decisions</h3>
+              <p>Manually synthesizing thousands of pages of 10-K and 10-Q filings slows down time-sensitive market research.</p>
+            </div>
+          </div>
+
+          <div class="cta-wrapper">
+            <p class="example-query">Example query: "Apple's total net sales for FY2025"</p>
+            <a href="#dashboard" class="button cta-button">Run Live Comparison</a>
+          </div>
+        </div>
+      </section>
+
+      <section class="section-shell" id="architecture">
+        <div class="section-heading">
+          <p class="eyebrow">System Architecture</p>
+          <h2>Three distinct pipelines.</h2>
+        </div>
+        <div class="architecture-grid">
+          <article class="arch-card">
+            <div class="arch-icon red">1</div>
+            <h3>LLM Only</h3>
+            <p>Direct query to the hosted LLM. No retrieval or external context.</p>
+          </article>
+          <article class="arch-card">
+            <div class="arch-icon yellow">2</div>
+            <h3>Basic RAG</h3>
+            <p>SentenceTransformer embedding &rarr; FAISS vector retrieval &rarr; LLM generation.</p>
+          </article>
+          <article class="arch-card">
+            <div class="arch-icon cyan">3</div>
+            <h3>GraphRAG</h3>
+            <p>Deterministic company matching &rarr; TigerGraph getCompanyContext retrieval &rarr; LLM generation.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section-shell" id="dashboard">
+        <div class="section-heading">
+          <p class="eyebrow">Pipeline comparison dashboard</p>
+          <h2>One query, three real backends.</h2>
+        </div>
+        <form id="query-form" class="query-form">
+          <label class="sr-only" for="query-input">Financial question</label>
+          <input
+            id="query-input"
+            name="query"
+            type="search"
+            autocomplete="off"
+            placeholder="Apple's total net sales for FY2025..."
+          />
+          <div class="button-group" style="display: flex; gap: 8px;">
+            <button type="submit">Run Analysis</button>
+            <button type="button" id="stop-button" disabled style="background-color: #ef4444; border-color: #ef4444;">Stop</button>
+          </div>
+        </form>
+        <section class="expected-panel" aria-live="polite">
+          <div class="expected-head">
+            <span>Expected Answer</span>
+            <b id="expected-source">Gemini auto-reference</b>
+          </div>
+          <p id="expected-answer" class="empty-state">
+            Run an analysis to generate the reference answer automatically.
+          </p>
+        </section>
+        <div id="pipeline-grid" class="pipeline-grid" aria-live="polite">
+          <article class="pipeline-card red">
+            <div class="pipeline-head">
+              <span>LLM</span>
+              <b>Llama 3.3 / Gemini</b>
+            </div>
+            <p class="empty-state">Run an analysis to call the LLM-only endpoint.</p>
+          </article>
+          <article class="pipeline-card yellow">
+            <div class="pipeline-head">
+              <span>RAG</span>
+              <b>FAISS + Gemini</b>
+            </div>
+            <p class="empty-state">Retrieved chunks and generated answer will appear here.</p>
+          </article>
+          <article class="pipeline-card cyan">
+            <div class="pipeline-head">
+              <span>GraphRAG</span>
+              <b>TigerGraph + Gemini</b>
+            </div>
+            <p class="empty-state">TigerGraph paths and generated answer will appear here.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section-shell" id="batch">
+        <div class="section-heading">
+          <p class="eyebrow">Batch Evaluation</p>
+          <h2>Paste benchmark questions and run the full evaluation.</h2>
+        </div>
+        <form id="batch-form" class="batch-form">
+          <label class="sr-only" for="batch-input">Benchmark questions</label>
+          <textarea
+            id="batch-input"
+            name="questions"
+            rows="10"
+            placeholder="Paste one test query per line&#10;Apple's total net sales for FY2025&#10;ExxonMobil's total revenues and other income for FY2025&#10;Which had the higher fiscal-year net income: JPMorgan Chase or ExxonMobil?"
+          ></textarea>
+          <div class="batch-actions">
+            <button type="submit">Run Batch Evaluation</button>
+            <button id="export-csv" type="button" disabled>Export CSV</button>
+            <span id="batch-status">0 questions ready</span>
+          </div>
+        </form>
+        <div class="benchmark-summary">
+          <article class="benchmark-card">
+            <span>Graph Token Reduction vs RAG</span>
+            <strong id="improve-token">--</strong>
+          </article>
+          <article class="benchmark-card">
+            <span>Graph Cost Reduction vs RAG</span>
+            <strong id="improve-cost">--</strong>
+          </article>
+          <article class="benchmark-card">
+            <span>Graph Latency Improvement vs RAG</span>
+            <strong id="improve-latency">--</strong>
+          </article>
+          <article class="benchmark-card">
+            <span>Graph Judge Accuracy Improvement vs RAG</span>
+            <strong id="improve-accuracy">--</strong>
+          </article>
+          <article class="benchmark-card">
+            <span>Graph BERT Improvement vs RAG</span>
+            <strong id="improve-bert">--</strong>
+          </article>
+        </div>
+        <div id="batch-table" class="batch-table" aria-live="polite">
+          <p class="empty-state">Batch averages will appear here after evaluation.</p>
+        </div>
+      </section>
+
+      <section class="section-shell" id="metrics">
+        <div class="section-heading">
+          <p class="eyebrow">Metrics charts</p>
+          <h2>Tokens, latency, cost, and accuracy.</h2>
+        </div>
+        <div class="ticker-table" role="table" aria-label="Pipeline comparison metrics">
+          <div class="ticker-row header" role="row">
+            <span role="columnheader">Metric</span>
+            <span role="columnheader">LLM</span>
+            <span role="columnheader">RAG</span>
+            <span role="columnheader">GraphRAG</span>
+          </div>
+          <div class="ticker-row" role="row">
+            <span role="cell">Tokens</span>
+            <span id="metric-llm-tokens">--</span>
+            <span id="metric-rag-tokens">--</span>
+            <span id="metric-graph-tokens">--</span>
+          </div>
+          <div class="ticker-row" role="row">
+            <span role="cell">Latency</span>
+            <span id="metric-llm-latency">--</span>
+            <span id="metric-rag-latency">--</span>
+            <span id="metric-graph-latency">--</span>
+          </div>
+          <div class="ticker-row" role="row">
+            <span role="cell">Cost</span>
+            <span id="metric-llm-cost">--</span>
+            <span id="metric-rag-cost">--</span>
+            <span id="metric-graph-cost">--</span>
+          </div>
+          <div class="ticker-row" role="row">
+            <span role="cell">Accuracy (LLM Judge)</span>
+            <span id="metric-llm-accuracy">--</span>
+            <span id="metric-rag-accuracy">--</span>
+            <span id="metric-graph-accuracy">--</span>
+          </div>
+          <div class="ticker-row" role="row">
+            <span role="cell">BERTScore F1</span>
+            <span id="metric-llm-bertscore">--</span>
+            <span id="metric-rag-bertscore">--</span>
+            <span id="metric-graph-bertscore">--</span>
+          </div>
+
+        </div>
+        <div class="chart-grid">
+          <div class="chart-panel">
+            <h3>Token Usage</h3>
+            <canvas id="tokens-chart" width="420" height="220"></canvas>
+          </div>
+          <div class="chart-panel">
+            <h3>Cost Per Query</h3>
+            <canvas id="cost-chart" width="420" height="220"></canvas>
+          </div>
+          <div class="chart-panel">
+            <h3>Latency</h3>
+            <canvas id="latency-chart" width="420" height="220"></canvas>
+          </div>
+          <div class="chart-panel">
+            <h3>Accuracy Score</h3>
+            <canvas id="accuracy-chart" width="420" height="220"></canvas>
+          </div>
+          <div class="chart-panel">
+            <h3>BERTScore F1</h3>
+            <canvas id="bertscore-chart" width="420" height="220"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <section class="section-shell graph-layout" id="graph">
+        <div>
+          <div class="section-heading">
+            <p class="eyebrow">Graph visualization</p>
+            <h2>Live TigerGraph nodes and FILED_BY edges.</h2>
+          </div>
+          <div class="graph-stage">
+            <svg id="graph-svg" viewBox="0 0 760 460" role="img" aria-label="TigerGraph traversal graph"></svg>
+          </div>
+        </div>
+        <aside class="inspector">
+          <h3>Retrieved Context</h3>
+          <div id="retrieval-list" class="retrieval-list">
+            <p class="empty-state">Run an analysis to inspect real retrieved chunks and graph paths.</p>
+          </div>
+        </aside>
+      </section>
+
+      <section class="section-shell" id="dataset">
+        <div class="section-heading">
+          <p class="eyebrow">Dataset stats</p>
+          <h2>Loaded benchmark assets.</h2>
+        </div>
+        <div class="stats-grid">
+          <article class="stat-card">
+            <span>Chunks</span>
+            <strong id="stat-chunks">50,487</strong>
+            <p id="stat-mode-detail">chunks.jsonl</p>
+          </article>
+          <article class="stat-card">
+            <span>Vertices</span>
+            <strong id="stat-entities">4,872</strong>
+            <p>Company / Document</p>
+          </article>
+          <article class="stat-card">
+            <span>Edges</span>
+            <strong id="stat-relationships">5,678</strong>
+            <p>FILED_BY</p>
+          </article>
+          <article class="stat-card">
+            <span>Graph Mode</span>
+            <strong id="stat-mode">loading</strong>
+            <p id="stat-graph-source">TigerGraph config check</p>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <span>FinGraph AI</span>
+      <span>SEC Filing & Corporate Finance Analysis Benchmark.</span>
+    </footer>
+
+    <script src="/config.js?v=7"></script>
+    <script src="/app.js?v=7"></script>
+  </body>
+</html>

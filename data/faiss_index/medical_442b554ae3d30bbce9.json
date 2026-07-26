@@ -1,0 +1,9 @@
+{
+  "dataset_path": "E:\\Github Project\\tigergraph_hk2\\data\\sp100\\chunks.jsonl",
+  "dataset_size": 106036184,
+  "dataset_mtime_ns": 1784657590000000000,
+  "chunk_count": 50487,
+  "embedding_model": "sentence-transformers/all-MiniLM-L6-v2",
+  "index_type": "faiss.IndexFlatIP",
+  "normalized": true
+}

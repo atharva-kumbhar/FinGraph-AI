@@ -1,0 +1,9 @@
+{
+  "dataset_path": "E:\\Github Project\\tigergraph_hk2\\data\\final_medical_rag_dataset.csv",
+  "dataset_size": 8566366,
+  "dataset_mtime_ns": 1778679662000000000,
+  "chunk_count": 13807,
+  "embedding_model": "sentence-transformers/all-MiniLM-L6-v2",
+  "index_type": "faiss.IndexFlatIP",
+  "normalized": true
+}

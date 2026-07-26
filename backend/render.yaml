@@ -1,0 +1,29 @@
+services:
+  - type: web
+    name: medgraph-api
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: .
+    plan: starter
+    healthCheckPath: /api/health
+    envVars:
+      - key: MEDGRAPH_HOST
+        value: 0.0.0.0
+      - key: MEDGRAPH_DATASET_PATH
+        value: /app/data/sp100/chunks.jsonl
+      - key: MEDGRAPH_INDEX_DIR
+        value: /app/data/faiss_index
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: NVIDIA_API_KEY
+        sync: false
+      - key: TG_HOST
+        sync: false
+      - key: TG_GRAPH_NAME
+        sync: false
+      - key: TG_SECRET
+        sync: false
+      - key: TG_API_TOKEN
+        sync: false
+      - key: MEDGRAPH_CORS_ORIGINS
+        sync: false

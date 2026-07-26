@@ -1,0 +1,9 @@
+{
+  "dataset_path": "D:\\tigergraph_hk2\\final_medical_rag_dataset.csv",
+  "dataset_size": 8566366,
+  "dataset_mtime_ns": 1778679661980430000,
+  "chunk_count": 13807,
+  "embedding_model": "sentence-transformers/all-MiniLM-L6-v2",
+  "index_type": "faiss.IndexFlatIP",
+  "normalized": true
+}

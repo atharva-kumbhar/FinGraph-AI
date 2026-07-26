@@ -1,0 +1,40 @@
+# Environment variables and API secrets
+.env
+.env.*
+!.env.example
+
+# Large dataset files (>100MB limit on GitHub) & legacy assets
+data/sp100/*.jsonl
+data/final_medical_rag_dataset.csv
+data/sample_medical_chunks.json
+data/ground_truth_questions.json
+
+# Binary FAISS indices (rebuilt automatically from chunks.jsonl)
+data/faiss_index/*.faiss
+
+# Python cache & virtual environments
+.venv/
+env/
+venv/
+__pycache__/
+*.py[cod]
+*.log
+backend/server.err.log
+
+# IDE & Editor files
+.vscode/
+.idea/
+
+# Scratch & test scripts not needed for core runtime
+scratch/
+test_*.py
+read_app.py
+read_public_response.py
+check_metrics.py
+search_script.py
+funtion_feature.txt
+information_Details.txt
+notebooks/
+frontend/benchmark_results.csv
+frontend/raw_benchmark_results*.json
+frontend/evalution.py
