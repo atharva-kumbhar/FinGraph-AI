@@ -693,16 +693,16 @@ class TigerGraphClient:
                 if any(v in ckey_low or ckey_low in v for v in variants):
                     comp_chunks.extend(clist)
 
-            # Fast pre-filter candidate chunks (up to 40) for fast sorting
-            candidate_pool = comp_chunks[:40] if len(comp_chunks) > 40 else comp_chunks
+            # Sort company chunks by 10-K filing priority and keyword token match frequency (highest relevance first)
+            if comp_chunks:
+                def _chunk_score(r: dict[str, Any]) -> tuple[int, int]:
+                    ftype = (r.get("filing_type") or r.get("form") or "").upper()
+                    is_10k = 2 if ("10-K" in ftype or "10K" in ftype) else 0
+                    text_low = (r.get("text") or "").lower()
+                    matches = sum(1 for tok in kws_tokens if tok in text_low) if kws_tokens else 0
+                    return (is_10k + (1 if matches >= 2 else 0), matches)
 
-            # Sort company chunks by keyword token match frequency (highest relevance first)
-            if kws_tokens and candidate_pool:
-                comp_chunks = sorted(
-                    candidate_pool,
-                    key=lambda r: sum(1 for tok in kws_tokens if tok in (r.get("text") or "").lower()),
-                    reverse=True,
-                )
+                comp_chunks = sorted(comp_chunks, key=_chunk_score, reverse=True)
 
             current_comp_matched: list[dict[str, Any]] = []
 
