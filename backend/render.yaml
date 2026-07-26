@@ -1,17 +1,17 @@
 services:
   - type: web
-    name: medgraph-api
+    name: fingraph-api
     runtime: docker
     dockerfilePath: ./backend/Dockerfile
     dockerContext: .
     plan: starter
     healthCheckPath: /api/health
     envVars:
-      - key: MEDGRAPH_HOST
+      - key: FINGRAPH_HOST
         value: 0.0.0.0
-      - key: MEDGRAPH_DATASET_PATH
+      - key: FINGRAPH_DATASET_PATH
         value: /app/data/sp100/chunks.jsonl
-      - key: MEDGRAPH_INDEX_DIR
+      - key: FINGRAPH_INDEX_DIR
         value: /app/data/faiss_index
       - key: GEMINI_API_KEY
         sync: false
@@ -25,5 +25,5 @@ services:
         sync: false
       - key: TG_API_TOKEN
         sync: false
-      - key: MEDGRAPH_CORS_ORIGINS
+      - key: FINGRAPH_CORS_ORIGINS
         sync: false

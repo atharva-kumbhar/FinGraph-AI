@@ -1,4 +1,4 @@
-"""Runtime configuration for MedGraph AI.
+"""Runtime configuration for FinGraph AI.
 
 The Colab notebook contains live service credentials. This app deliberately
 keeps those out of source control and reads integrations from environment
@@ -34,7 +34,7 @@ _load_dotenv()
 
 
 def _default_dataset_path() -> Path:
-    configured = os.getenv("MEDGRAPH_DATASET_PATH")
+    configured = os.getenv("FINGRAPH_DATASET_PATH")
     if configured:
         configured_path = Path(configured)
         if configured_path.exists():
@@ -54,36 +54,36 @@ def _default_dataset_path() -> Path:
 @dataclass(frozen=True)
 class Settings:
     app_name: str = "FinGraph AI"
-    host: str = os.getenv("MEDGRAPH_HOST", "0.0.0.0")
-    port: int = int(os.getenv("PORT", os.getenv("MEDGRAPH_PORT", "8000")))
-    full_dataset_chunks: int = int(os.getenv("MEDGRAPH_TOTAL_CHUNKS", "50487"))
-    full_dataset_tokens: int = int(os.getenv("MEDGRAPH_TOTAL_TOKENS", "15000000"))
+    host: str = os.getenv("FINGRAPH_HOST", "0.0.0.0")
+    port: int = int(os.getenv("PORT", os.getenv("FINGRAPH_PORT", "8000")))
+    full_dataset_chunks: int = int(os.getenv("FINGRAPH_TOTAL_CHUNKS", "50487"))
+    full_dataset_tokens: int = int(os.getenv("FINGRAPH_TOTAL_TOKENS", "15000000"))
     dataset_path: Path = _default_dataset_path()
     frontend_dir: Path = ROOT_DIR / "frontend"
     benchmark_path: Path = ROOT_DIR / "data" / "ground_truth_questions.json"
     triplets_dir: Path = ROOT_DIR / "data" / "triplets"
     price_per_1k_tokens_usd: float = float(
-        os.getenv("MEDGRAPH_PRICE_PER_1K_TOKENS", "0.0008")
+        os.getenv("FINGRAPH_PRICE_PER_1K_TOKENS", "0.0008")
     )
-    request_timeout_seconds: int = max(25, int(os.getenv("MEDGRAPH_REQUEST_TIMEOUT_SECONDS", "8")))
+    request_timeout_seconds: int = max(25, int(os.getenv("FINGRAPH_REQUEST_TIMEOUT_SECONDS", "8")))
     nvidia_request_timeout_seconds: int = int(
-        os.getenv("MEDGRAPH_NVIDIA_TIMEOUT_SECONDS", "120")
+        os.getenv("FINGRAPH_NVIDIA_TIMEOUT_SECONDS", "120")
     )
-    retrieval_top_k: int = int(os.getenv("MEDGRAPH_RETRIEVAL_TOP_K", "50"))
-    rag_retrieval_top_k: int = int(os.getenv("MEDGRAPH_RAG_RETRIEVAL_TOP_K", "50"))
+    retrieval_top_k: int = int(os.getenv("FINGRAPH_RETRIEVAL_TOP_K", "50"))
+    rag_retrieval_top_k: int = int(os.getenv("FINGRAPH_RAG_RETRIEVAL_TOP_K", "50"))
     graphrag_retrieval_top_k: int = int(
-        os.getenv("MEDGRAPH_GRAPH_RETRIEVAL_TOP_K", "10")
+        os.getenv("FINGRAPH_GRAPH_RETRIEVAL_TOP_K", "10")
     )
     graphrag_graph_chunk_limit: int = int(
-        os.getenv("MEDGRAPH_GRAPH_CHUNK_LIMIT", "10")
+        os.getenv("FINGRAPH_GRAPH_CHUNK_LIMIT", "10")
     )
     embedding_model: str = os.getenv(
-        "MEDGRAPH_EMBEDDING_MODEL", "sentence-transformers/all-MiniLM-L6-v2"
+        "FINGRAPH_EMBEDDING_MODEL", "sentence-transformers/all-MiniLM-L6-v2"
     )
-    retrieval_backend: str = os.getenv("MEDGRAPH_RETRIEVAL_BACKEND", "keyword").lower()
-    embedding_batch_size: int = int(os.getenv("MEDGRAPH_EMBEDDING_BATCH_SIZE", "64"))
+    retrieval_backend: str = os.getenv("FINGRAPH_RETRIEVAL_BACKEND", "keyword").lower()
+    embedding_batch_size: int = int(os.getenv("FINGRAPH_EMBEDDING_BATCH_SIZE", "64"))
     index_dir: Path = Path(
-        os.getenv("MEDGRAPH_INDEX_DIR", str(ROOT_DIR / "data" / "faiss_index"))
+        os.getenv("FINGRAPH_INDEX_DIR", str(ROOT_DIR / "data" / "faiss_index"))
     )
 
     nvidia_api_key: str = os.getenv(
@@ -93,17 +93,17 @@ class Settings:
     nvidia_base_url: str = os.getenv(
         "NVIDIA_BASE_URL", "https://integrate.api.nvidia.com/v1"
     )
-    llm_model: str = os.getenv("MEDGRAPH_LLM_MODEL", "meta/llama-3.3-70b-instruct")
-    production_provider: str = os.getenv("MEDGRAPH_PRODUCTION_PROVIDER", "auto").lower()
-    llm_only_provider: str = os.getenv("MEDGRAPH_LLM_ONLY_PROVIDER", "gemini").lower()
-    rag_provider: str = os.getenv("MEDGRAPH_RAG_PROVIDER", "gemini").lower()
-    graphrag_provider: str = os.getenv("MEDGRAPH_GRAPHRAG_PROVIDER", "gemini").lower()
-    test_provider: str = os.getenv("MEDGRAPH_TEST_PROVIDER", "auto").lower()
+    llm_model: str = os.getenv("FINGRAPH_LLM_MODEL", "meta/llama-3.3-70b-instruct")
+    production_provider: str = os.getenv("FINGRAPH_PRODUCTION_PROVIDER", "auto").lower()
+    llm_only_provider: str = os.getenv("FINGRAPH_LLM_ONLY_PROVIDER", "gemini").lower()
+    rag_provider: str = os.getenv("FINGRAPH_RAG_PROVIDER", "gemini").lower()
+    graphrag_provider: str = os.getenv("FINGRAPH_GRAPHRAG_PROVIDER", "gemini").lower()
+    test_provider: str = os.getenv("FINGRAPH_TEST_PROVIDER", "auto").lower()
     generation_provider: str = os.getenv(
-        "MEDGRAPH_GENERATION_PROVIDER", production_provider
+        "FINGRAPH_GENERATION_PROVIDER", production_provider
     ).lower()
     expected_answer_provider: str = os.getenv(
-        "MEDGRAPH_EXPECTED_ANSWER_PROVIDER", "gemini"
+        "FINGRAPH_EXPECTED_ANSWER_PROVIDER", "gemini"
     ).lower()
 
     gemini_api_key: str = os.getenv(
@@ -116,18 +116,18 @@ class Settings:
 
     hf_token: str = os.getenv("HF_TOKEN", "")
     hf_judge_model: str = os.getenv("HF_JUDGE_MODEL", "meta-llama/Llama-3.1-8B-Instruct")
-    enable_llm_judge: bool = os.getenv("MEDGRAPH_ENABLE_LLM_JUDGE", "true").lower() in {
+    enable_llm_judge: bool = os.getenv("FINGRAPH_ENABLE_LLM_JUDGE", "true").lower() in {
         "1",
         "true",
         "yes",
     }
-    enable_bertscore: bool = os.getenv("MEDGRAPH_ENABLE_BERTSCORE", "true").lower() in {
+    enable_bertscore: bool = os.getenv("FINGRAPH_ENABLE_BERTSCORE", "true").lower() in {
         "1",
         "true",
         "yes",
     }
-    judge_provider: str = os.getenv("MEDGRAPH_JUDGE_PROVIDER", "gemini").lower()
-    tg_live_cloud_enabled: bool = os.getenv("MEDGRAPH_TG_LIVE_CLOUD_ENABLED", "false").lower() in {"1", "true", "yes"}
+    judge_provider: str = os.getenv("FINGRAPH_JUDGE_PROVIDER", "gemini").lower()
+    tg_live_cloud_enabled: bool = os.getenv("FINGRAPH_TG_LIVE_CLOUD_ENABLED", "false").lower() in {"1", "true", "yes"}
 
     tg_host: str = os.getenv(
         "TG_HOST",

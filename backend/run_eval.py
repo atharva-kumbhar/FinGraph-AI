@@ -15,7 +15,7 @@ def run_evaluation():
         questions = json.load(f)
 
     print(f"Loaded {len(questions)} questions from dataset.")
-    print("Sending batch to MedGraph AI benchmark endpoint (this will take several minutes)...")
+    print("Sending batch to FinGraph AI benchmark endpoint (this will take several minutes)...")
     
     start_time = time.time()
     try:
@@ -59,7 +59,7 @@ def run_evaluation():
     print(f"Cost reduction:  {improvements.get('graph_cost_reduction_vs_rag_percent')}%")
     print(f"Accuracy lift:   {improvements.get('graph_accuracy_improvement_vs_rag_percent')}%")
 
-    print("Note: The MedGraph AI backend automatically evaluates 'PASS/FAIL' using Gemini instead of Hugging Face, as configured in medgraph/config.py.")
+    print("Note: The FinGraph AI backend automatically evaluates 'PASS/FAIL' using Gemini instead of Hugging Face, as configured in fingraph/config.py.")
 
 if __name__ == "__main__":
     run_evaluation()

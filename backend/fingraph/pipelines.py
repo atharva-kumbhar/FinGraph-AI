@@ -27,7 +27,7 @@ class PipelineService:
         # Pre-warm SEC chunks index and graph dataset in background thread for instant UI responses
         def _warm() -> None:
             import socket
-            from medgraph.graph import TigerGraphClient
+            from fingraph.graph import TigerGraphClient
             try:
                 host_str = self.graph.tigergraph.host.replace("https://", "").replace("http://", "").split("/")[0].split(":")[0]
                 socket.create_connection((host_str, 443), timeout=0.2)
@@ -194,7 +194,7 @@ class PipelineService:
             "llm_provider": provider,
             "metric_sources": {
                 "tokens": "Hosted LLM API usage when returned; otherwise estimated from prompt and answer text.",
-                "cost": "Calculated from tokens and MEDGRAPH_PRICE_PER_1K_TOKENS.",
+                "cost": "Calculated from tokens and FINGRAPH_PRICE_PER_1K_TOKENS.",
                 "latency": "Measured wall-clock time for the real backend pipeline, including retrieval, graph traversal, hosted generation, and judging.",
                 "accuracy": "Gemini LLM-as-a-judge PASS/FAIL against the generated expected_answer.",
                 "bertscore": "BERTScore F1 between the generated answer and expected_answer when bert-score is installed.",
@@ -341,7 +341,7 @@ class PipelineService:
         llm_provider = provider or settings.llm_only_provider
         
         import logging
-        logger = logging.getLogger("medgraph.pipelines")
+        logger = logging.getLogger("fingraph.pipelines")
         logger.info(f"[LLM Only] Starting pipeline for query: '{query}'")
         
         prompt = f"Answer this corporate finance and SEC filing question directly using your general internal knowledge. State the answer clearly.\n\nQuestion:\n{query}"
@@ -417,7 +417,7 @@ class PipelineService:
         import logging
         import time
         from .entity_extractor import extract_entities
-        logger = logging.getLogger("medgraph.pipelines")
+        logger = logging.getLogger("fingraph.pipelines")
         logger.info(f"[Basic RAG] Starting pipeline for query: '{query}' (top_k={top_k})")
         
         logger.info("[Basic RAG] Retrieving chunks via FAISS...")
@@ -510,7 +510,7 @@ Retrieved SEC filing chunks ({len(retrievals)} vector matches, top-{top_k}):
     ) -> dict[str, Any]:
         import logging
         import time
-        logger = logging.getLogger("medgraph.pipelines")
+        logger = logging.getLogger("fingraph.pipelines")
         logger.info(f"[GraphRAG] Starting pipeline for query: '{query}'")
         
         local_fast_mode = (

@@ -1,4 +1,4 @@
-"""Production API routes for MedGraph AI."""
+"""Production API routes for FinGraph AI."""
 
 from __future__ import annotations
 
@@ -7,7 +7,7 @@ from typing import Any
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
-from medgraph.config import settings
+from fingraph.config import settings
 from services.pipeline_service import get_pipeline_service
 
 
@@ -16,7 +16,7 @@ service = get_pipeline_service()
 
 
 class QueryRequest(BaseModel):
-    query: str = Field(..., min_length=1, description="Medical question to analyze")
+    query: str = Field(..., min_length=1, description="Financial question to analyze")
     reference_answer: str | None = Field(
         default=None,
         description=(
@@ -41,7 +41,7 @@ def _query_payload(body: QueryRequest) -> dict[str, Any]:
 
 @router.get("/health")
 def health() -> dict[str, Any]:
-    from medgraph.config import settings
+    from fingraph.config import settings
 
     return {"ok": True, "app": settings.app_name}
 

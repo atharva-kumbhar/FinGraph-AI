@@ -1,8 +1,8 @@
-"""Singleton access to the real MedGraph pipeline orchestrator."""
+"""Singleton access to the real FinGraph pipeline orchestrator."""
 
 from __future__ import annotations
 
-from medgraph.pipelines import PipelineService
+from fingraph.pipelines import PipelineService
 
 _service: PipelineService | None = None
 

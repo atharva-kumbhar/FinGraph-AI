@@ -1,4 +1,4 @@
-"""MedGraph AI backend package."""
+"""FinGraph AI backend package."""
 
 __all__ = [
     "config",

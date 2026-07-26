@@ -1,5 +1,5 @@
 ---
-title: MedGraph
+title: FinGraph
 emoji: 📈
 colorFrom: blue
 colorTo: indigo
@@ -84,7 +84,7 @@ By leveraging **TigerGraph Knowledge Graphs** alongside **Gemini 2.5 Flash**, Fi
 ```text
 ├── frontend/             # Executive UI Dashboard (Live pipeline comparison, Graph visualization, Metrics)
 ├── backend/              # FastAPI application server & REST endpoints
-│   └── medgraph/         # Core reasoning engine (GraphRAG, Basic RAG, TigerGraph Client, Evaluator)
+│   └── fingraph/         # Core reasoning engine (GraphRAG, Basic RAG, TigerGraph Client, Evaluator)
 │       ├── graph.py      # TigerGraphClient & GraphReasoner (GSQL REST client & parallel traversal)
 │       ├── pipelines.py  # PipelineService orchestrating LLM-Only, Basic RAG, and GraphRAG
 │       ├── entity_extractor.py # Deterministic entity extraction & GSQL routing

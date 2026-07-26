@@ -22,7 +22,7 @@ class SECChunk:
 
 
 # Alias for backward compatibility if imported elsewhere
-MedicalChunk = SECChunk
+FinancialChunk = SECChunk
 
 
 class MedicalCorpus:

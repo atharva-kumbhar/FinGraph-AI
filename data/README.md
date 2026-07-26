@@ -1,4 +1,4 @@
-# MedGraph AI Data
+# FinGraph AI Data
 
 | Asset | Path | Description |
 |-------|------|-------------|

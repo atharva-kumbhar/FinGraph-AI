@@ -1,4 +1,4 @@
-"""MedGraph AI production server (FastAPI + Uvicorn).
+"""FinGraph AI production server (FastAPI + Uvicorn).
 
 Local:
     cd backend && uvicorn app:app --reload --host 127.0.0.1 --port 8000
@@ -22,7 +22,7 @@ BACKEND_DIR = Path(__file__).resolve().parent
 if str(BACKEND_DIR) not in sys.path:
     sys.path.insert(0, str(BACKEND_DIR))
 
-from medgraph.config import settings  # noqa: E402
+from fingraph.config import settings  # noqa: E402
 from routes.api import router  # noqa: E402
 
 
@@ -35,7 +35,7 @@ def create_app() -> FastAPI:
 
     origins = [
         origin.strip()
-        for origin in os.getenv("MEDGRAPH_CORS_ORIGINS", "*").split(",")
+        for origin in os.getenv("FINGRAPH_CORS_ORIGINS", "*").split(",")
         if origin.strip()
     ]
     app.add_middleware(

@@ -14,9 +14,9 @@ COPY data/ /app/data/
 COPY frontend/ /app/frontend/
 
 ENV PYTHONPATH=/app/backend
-ENV MEDGRAPH_HOST=0.0.0.0
-ENV MEDGRAPH_DATASET_PATH=/app/data/sp100/chunks.jsonl
-ENV MEDGRAPH_INDEX_DIR=/app/data/faiss_index
+ENV FINGRAPH_HOST=0.0.0.0
+ENV FINGRAPH_DATASET_PATH=/app/data/sp100/chunks.jsonl
+ENV FINGRAPH_INDEX_DIR=/app/data/faiss_index
 
 WORKDIR /app/backend
 EXPOSE 8000

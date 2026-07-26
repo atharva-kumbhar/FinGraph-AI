@@ -1,5 +1,5 @@
 const qs = (selector) => document.querySelector(selector);
-const API_BASE = (window.MEDGRAPH_CONFIG && window.MEDGRAPH_CONFIG.apiBase) || "";
+const API_BASE = (window.FINGRAPH_CONFIG && window.FINGRAPH_CONFIG.apiBase) || "";
 
 function apiUrl(path) {
   return `${API_BASE}${path}`;
@@ -660,7 +660,7 @@ function exportBenchmarkCsv() {
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = `medgraph-benchmark-${new Date().toISOString().slice(0, 10)}.csv`;
+  link.download = `fingraph-benchmark-${new Date().toISOString().slice(0, 10)}.csv`;
   document.body.appendChild(link);
   link.click();
   link.remove();

@@ -76,7 +76,7 @@ class AccuracyEvaluator:
                 bertscore_f1=bertscore_f1,
                 hallucination_risk="UNKNOWN",
                 method="LLM-as-judge disabled",
-                rationale="Set MEDGRAPH_ENABLE_LLM_JUDGE=true to evaluate generated answers.",
+                rationale="Set FINGRAPH_ENABLE_LLM_JUDGE=true to evaluate generated answers.",
             )
         judge_provider = settings.judge_provider
         if not self.llm_client or not self.llm_client.has_provider(judge_provider):

@@ -35,7 +35,7 @@ from .entity_extractor import (
 )
 from .retrievers import RetrievalResult
 
-logger = logging.getLogger("medgraph.graph")
+logger = logging.getLogger("fingraph.graph")
 
 
 def detect_companies(query: str, known_companies: list[tuple[str, str]] | None = None) -> list[str]:

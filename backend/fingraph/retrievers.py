@@ -1,4 +1,4 @@
-"""Real FAISS retrieval over the medical RAG dataset.
+"""Real FAISS retrieval over the SEC financial RAG dataset.
 
 The Colab pipeline used sentence-transformers/all-MiniLM-L6-v2 embeddings and
 FAISS similarity search. This module implements that same flow and persists the
@@ -18,7 +18,7 @@ from pathlib import Path
 from typing import Any
 
 from .config import settings
-from .corpus import MedicalChunk
+from .corpus import FinancialChunk
 
 
 os.environ.setdefault("HF_HUB_DISABLE_PROGRESS_BARS", "1")
@@ -42,7 +42,7 @@ class FaissMedicalRetriever:
 
     def __init__(
         self,
-        chunks: list[MedicalChunk],
+        chunks: list[FinancialChunk],
         dataset_path: Path | None = None,
         model_name: str | None = None,
         index_dir: Path | None = None,
@@ -56,7 +56,7 @@ class FaissMedicalRetriever:
         self.dimension = 0
         self._lock = threading.Lock()
         self._ready = False
-        self.fallback = KeywordMedicalRetriever(chunks)
+        self.fallback = KeywordFinancialRetriever(chunks)
         self.use_fallback = False
 
     def search(self, query: str, k: int = 5) -> list[RetrievalResult]:
@@ -206,7 +206,7 @@ class FaissMedicalRetriever:
 
         texts = [chunk.content for chunk in self.chunks]
         if not texts:
-            raise RuntimeError("The medical RAG dataset is empty; cannot build FAISS index.")
+            raise RuntimeError("The SEC financial RAG dataset is empty; cannot build FAISS index.")
 
         embeddings = self.model.encode(
             texts,
@@ -270,12 +270,12 @@ class FaissMedicalRetriever:
         return cached == self._metadata()
 
 
-class KeywordMedicalRetriever:
+class KeywordFinancialRetriever:
     """Fast local retriever that scores CSV chunks by query keyword overlap."""
 
     def __init__(
         self,
-        chunks: list[MedicalChunk],
+        chunks: list[FinancialChunk],
         dataset_path: Path | None = None,
         model_name: str | None = None,
         index_dir: Path | None = None,
@@ -287,7 +287,7 @@ class KeywordMedicalRetriever:
         if not query_tokens:
             return []
 
-        scored: list[tuple[float, int, MedicalChunk]] = []
+        scored: list[tuple[float, int, FinancialChunk]] = []
         for index, chunk in enumerate(self.chunks):
             text = f"{chunk.content} {' '.join(chunk.entities)}"
             chunk_tokens = self._tokens(text)
@@ -369,7 +369,7 @@ class KeywordMedicalRetriever:
 
 
 if settings.retrieval_backend in {"keyword", "fast", "local"}:
-    HybridRetriever = KeywordMedicalRetriever
+    HybridRetriever = KeywordFinancialRetriever
 else:
     # Only try to import torch and sentence_transformers if retrieval_backend is "faiss"
     try:
@@ -383,5 +383,5 @@ else:
         HybridRetriever = FaissMedicalRetriever
     else:
         import logging
-        logging.warning("FAISS dependencies (PyTorch/SentenceTransformers/PyTorch DLLs) failed to load. Falling back to KeywordMedicalRetriever.")
-        HybridRetriever = KeywordMedicalRetriever
+        logging.warning("FAISS dependencies (PyTorch/SentenceTransformers/PyTorch DLLs) failed to load. Falling back to KeywordFinancialRetriever.")
+        HybridRetriever = KeywordFinancialRetriever
