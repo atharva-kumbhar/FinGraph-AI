@@ -2,7 +2,7 @@
 
 > **AI-Powered Financial Reasoning & GraphRAG Platform for SEC Corporate Disclosures**
 
-FinGraph AI solves the critical precision and accuracy challenge in enterprise financial reasoning. Standard vector search (Basic RAG) frequently misinterprets footnotes, multi-year financial statements, and multi-entity comparative queries across SEC filings (10-K, 10-Q, 8-K, DEF 14A). 
+FinGraph AI solves the critical precision and accuracy challenge in enterprise financial reasoning. Standard vector search (Basic RAG) frequently misinterprets footnotes, multi-year financial statements, and multi-entity comparative queries across dataset. 
 
 By leveraging **TigerGraph Knowledge Graphs** alongside **Gemini 2.5 Flash**, FinGraph AI enables deterministic, sub-second graph traversal across S&P 100 enterprise datasets with 100% factual accuracy and a **>50% token cost reduction** compared to traditional vector RAG.
 
